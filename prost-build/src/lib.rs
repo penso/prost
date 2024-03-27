@@ -420,8 +420,8 @@ impl Config {
     ///
     /// # Arguments
     ///
-    /// **`path`** - a path matching any number of fields. These fields get the attribute.
-    /// For details about matching fields see [`btree_map`](#method.btree_map).
+    /// **`path`** - a path matching any number of field types. The fields matching this types get
+    /// the attribute. For details about matching field types see [`btree_map`](#method.btree_map).
     ///
     /// **`attribute`** - an arbitrary string that'll be placed before each matched field types.
     /// The expected usage are additional attributes, usually in concert with whole-type attributes

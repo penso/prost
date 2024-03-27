@@ -1719,8 +1719,8 @@ mod tests {
         let content = read_all_content(&out_file).replace("\r\n", "\n");
         assert_eq!(
             expected_content, content,
-            "Unexpected content: \n{}",
-            content
+            "Unexpected content: \n{}\nExpected content: \n{}",
+            content, expected_content
         );
     }
 
@@ -1773,7 +1773,7 @@ mod tests {
         }
     }
 
-    // #[test]
+    #[test]
     fn test_generate_field_attributes() {
         let _ = env_logger::try_init();
 
@@ -1826,15 +1826,15 @@ mod tests {
             .boxed("Bar.qux")
             // `#[allow(dead_code)]` has no specific meaning here, it's just to add a tag which
             // Rust won't complain about
-            .field_type_attribute(".field_attributes.Qux", "#[allow(dead_code)]")
+            .field_type_attribute(".field_type_attributes.Qux", "#[allow(dead_code)]")
             .compile_protos(
-                &["src/fixtures/field_attributes/field_attributes.proto"],
-                &["src/fixtures/field_attributes"],
+                &["src/fixtures/field_type_attributes/field_type_attributes.proto"],
+                &["src/fixtures/field_type_attributes"],
             )
             .unwrap();
 
         let out_file = out_dir
-            .join("field_attributes.rs")
+            .join("field_type_attributes.rs")
             .as_path()
             .display()
             .to_string();
@@ -1843,7 +1843,7 @@ mod tests {
 
         #[cfg(feature = "format")]
         let expected_content = read_all_content(
-            "src/fixtures/field_attributes/_expected_field_type_attributes_formatted.rs",
+            "src/fixtures/field_type_attributes/_expected_field_type_attributes_formatted.rs",
         )
         .replace("\r\n", "\n");
         #[cfg(not(feature = "format"))]
@@ -1853,8 +1853,8 @@ mod tests {
 
         assert_eq!(
             expected_content, content,
-            "Unexpected content: \n{}\nExpected content:: \n{}",
-            content, expected_content
+            "Unexpected content: \n{}",
+            content
         );
     }
 

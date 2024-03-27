@@ -479,14 +479,6 @@ impl<'a> CodeGenerator<'a> {
             }
         }
 
-        /* println!(
-            "fq_message_name: {:?} type: {:?} type_name: {:?} name: {:?}",
-            fq_message_name,
-            field.r#type(),
-            field.type_name(),
-            field.name()
-        ); */
-
         self.buf.push_str("\")]\n");
         self.append_field_attributes(fq_message_name, field.name());
         self.append_field_type_attributes(fq_message_name, field.r#type_name());

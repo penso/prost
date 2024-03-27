@@ -1719,8 +1719,8 @@ mod tests {
         let content = read_all_content(&out_file).replace("\r\n", "\n");
         assert_eq!(
             expected_content, content,
-            "Unexpected content: \n{}\nExpected content: \n{}",
-            content, expected_content
+            "Unexpected content: \n{}",
+            content
         );
     }
 
@@ -1809,8 +1809,8 @@ mod tests {
 
         assert_eq!(
             expected_content, content,
-            "Unexpected content: \n{}\nExpected content: \n{}\n file: src/fixtures/field_attributes/_expected_field_attributes_formatted.rs",
-            content, expected_content
+            "Unexpected content: \n{}",
+            content
         );
     }
 

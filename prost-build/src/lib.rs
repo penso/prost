@@ -237,6 +237,7 @@ pub struct Config {
     message_attributes: PathMap<String>,
     enum_attributes: PathMap<String>,
     field_attributes: PathMap<String>,
+    field_type_attributes: PathMap<String>,
     boxed: PathMap<()>,
     prost_types: bool,
     strip_enum_prefix: bool,
@@ -411,6 +412,38 @@ impl Config {
         A: AsRef<str>,
     {
         self.field_attributes
+            .insert(path.as_ref().to_string(), attribute.as_ref().to_string());
+        self
+    }
+
+    /// Add additional attribute to matched field types.
+    ///
+    /// # Arguments
+    ///
+    /// **`path`** - a path matching any number of field types. The fields matching this types get
+    /// the attribute. For details about matching field types see [`btree_map`](#method.btree_map).
+    ///
+    /// **`attribute`** - an arbitrary string that'll be placed before each matched field types.
+    /// The expected usage are additional attributes, usually in concert with whole-type attributes
+    /// set with [`type_attribute`](method.type_attribute), but it is not checked and anything can
+    /// be put there.
+    ///
+    /// Note that the calls to this method are cumulative ‒ if multiple paths from multiple calls
+    /// match the same field, the field gets all the corresponding attributes.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # let mut config = prost_build::Config::new();
+    /// // Use a specific serialization function for this type.
+    /// config.field_type_attribute(".google.protobuf.Any", "#[serde(serialize_with(\"custom_serialization\")]");
+    /// ```
+    pub fn field_type_attribute<P, A>(&mut self, path: P, attribute: A) -> &mut Self
+    where
+        P: AsRef<str>,
+        A: AsRef<str>,
+    {
+        self.field_type_attributes
             .insert(path.as_ref().to_string(), attribute.as_ref().to_string());
         self
     }
@@ -1298,6 +1331,7 @@ impl default::Default for Config {
             message_attributes: PathMap::default(),
             enum_attributes: PathMap::default(),
             field_attributes: PathMap::default(),
+            field_type_attributes: PathMap::default(),
             boxed: PathMap::default(),
             prost_types: true,
             strip_enum_prefix: true,
@@ -1326,6 +1360,7 @@ impl fmt::Debug for Config {
             .field("bytes_type", &self.bytes_type)
             .field("type_attributes", &self.type_attributes)
             .field("field_attributes", &self.field_attributes)
+            .field("field_type_attributes", &self.field_type_attributes)
             .field("prost_types", &self.prost_types)
             .field("strip_enum_prefix", &self.strip_enum_prefix)
             .field("out_dir", &self.out_dir)
@@ -1770,6 +1805,50 @@ mod tests {
         #[cfg(not(feature = "format"))]
         let expected_content =
             read_all_content("src/fixtures/field_attributes/_expected_field_attributes.rs")
+                .replace("\r\n", "\n");
+
+        assert_eq!(
+            expected_content, content,
+            "Unexpected content: \n{}",
+            content
+        );
+    }
+
+    #[test]
+    fn test_generate_field_type_attributes() {
+        let _ = env_logger::try_init();
+
+        let out_dir = std::env::temp_dir();
+
+        Config::new()
+            .out_dir(out_dir.clone())
+            .boxed("Container.data.foo")
+            .boxed("Bar.qux")
+            // `#[allow(dead_code)]` has no specific meaning here, it's just to add a tag which
+            // Rust won't complain about
+            .field_type_attribute(".field_type_attributes.Qux", "#[allow(dead_code)]")
+            .compile_protos(
+                &["src/fixtures/field_type_attributes/field_type_attributes.proto"],
+                &["src/fixtures/field_type_attributes"],
+            )
+            .unwrap();
+
+        let out_file = out_dir
+            .join("field_type_attributes.rs")
+            .as_path()
+            .display()
+            .to_string();
+
+        let content = read_all_content(&out_file).replace("\r\n", "\n");
+
+        #[cfg(feature = "format")]
+        let expected_content = read_all_content(
+            "src/fixtures/field_type_attributes/_expected_field_type_attributes_formatted.rs",
+        )
+        .replace("\r\n", "\n");
+        #[cfg(not(feature = "format"))]
+        let expected_content =
+            read_all_content("src/fixtures/field_attributes/_expected_field_type_attributes.rs")
                 .replace("\r\n", "\n");
 
         assert_eq!(

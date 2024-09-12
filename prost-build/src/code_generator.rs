@@ -362,6 +362,19 @@ impl<'a> CodeGenerator<'a> {
         }
     }
 
+    fn append_field_type_attributes(&mut self, fq_message_name: &str, field_name: &str) {
+        assert_eq!(b'.', fq_message_name.as_bytes()[0]);
+        for attribute in self
+            .config
+            .field_type_attributes
+            .get_field(fq_message_name, field_name)
+        {
+            push_indent(self.buf, self.depth);
+            self.buf.push_str(attribute);
+            self.buf.push('\n');
+        }
+    }
+
     fn append_field(&mut self, fq_message_name: &str, field: FieldDescriptorProto) {
         let type_ = field.r#type();
         let repeated = field.label == Some(Label::Repeated as i32);
@@ -468,6 +481,7 @@ impl<'a> CodeGenerator<'a> {
 
         self.buf.push_str("\")]\n");
         self.append_field_attributes(fq_message_name, field.name());
+        self.append_field_type_attributes(fq_message_name, field.r#type_name());
         self.push_indent();
         self.buf.push_str("pub ");
         self.buf.push_str(&to_snake(field.name()));
